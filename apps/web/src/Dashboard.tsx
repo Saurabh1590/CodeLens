@@ -83,7 +83,11 @@ export default function Dashboard() {
         const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/sessions?email=${encodeURIComponent(storedEmail)}`);
         if (!response.ok) throw new Error('Failed to fetch sessions');
         const data = await response.json();
-        setSessions(data);
+        if (data && data.length > 0) {
+          setSessions(data);
+        } else {
+          setSessions(SESSIONS);
+        }
         setError(null);
       } catch (err) {
         console.error('Error fetching sessions:', err);

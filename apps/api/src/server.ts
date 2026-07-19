@@ -25,10 +25,22 @@ const allowedOrigins = [
 fastify.register(cors, {
   origin: (origin, cb) => {
     // Allow requests with no origin (e.g. curl, mobile apps, extension)
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
       cb(null, true);
     } else {
-      cb(new Error('Not allowed by CORS'), false);
+      // Check for domain matches (ignoring schemes like http/https)
+      const isAllowed = allowedOrigins.some(allowed => {
+        if (allowed === '*') return true;
+        const cleanAllowed = allowed.replace(/^https?:\/\//, '');
+        const cleanOrigin = origin.replace(/^https?:\/\//, '');
+        return cleanOrigin === cleanAllowed || cleanOrigin.endsWith('.' + cleanAllowed);
+      });
+
+      if (isAllowed) {
+        cb(null, true);
+      } else {
+        cb(new Error(`Not allowed by CORS: ${origin}`), false);
+      }
     }
   },
 });
