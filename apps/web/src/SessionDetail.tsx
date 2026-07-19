@@ -1,4 +1,4 @@
- import { useState } from 'react';
+ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -15,100 +15,90 @@ export default function SessionDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [expandedSection, setExpandedSection] = useState<string | null>('overview');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sessionData, setSessionData] = useState<any>(null);
 
+  useEffect(() => {
+    const fetchSessionDetails = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/sessions/${id}`);
+        if (!response.ok) throw new Error('Failed to fetch session details');
+        const data = await response.json();
+        setSessionData(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching session details:', err);
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSessionDetails();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-slate-600 text-sm font-semibold">Loading session details...</p>
+      </div>
+    );
+  }
+
+  if (error || !sessionData) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-4">
+        <p className="text-red-600 text-sm font-semibold">Error: {error || 'Session not found'}</p>
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-semibold transition-colors"
+        >
+          Back to Dashboard
+        </button>
+      </div>
+    );
+  }
+
+  // Map API response to rendering variables
   const session = {
-    id,
-    title: 'Edit Distance',
-    difficulty: 'Hard',
-    status: 'Solved',
-    date: '2026-07-17',
-    startTime: '14:30',
-    endTime: '15:15',
-    score: 87,
+    title: sessionData.problemTitle || 'LeetCode Problem',
+    difficulty: sessionData.difficulty || 'Medium',
+    status: sessionData.status || 'Solved',
+    date: sessionData.date || '',
+    startTime: sessionData.startTime || '00:00',
+    endTime: sessionData.endTime || '00:00',
+    score: sessionData.score || 75,
     metrics: {
-      readingDuration: 8,
-      codingDuration: 28,
-      debuggingDuration: 12,
-      totalDuration: 45,
-      runCount: 12,
-      submissionCount: 3,
-      acceptanceRate: 78,
-      errorCount: 4,
-    },
+      readingDuration: sessionData.metrics?.readingDuration || 0,
+      codingDuration: sessionData.metrics?.codingDuration || 0,
+      debuggingDuration: sessionData.metrics?.debuggingDuration || 0,
+      totalDuration: sessionData.metrics?.totalDuration || 1,
+      runCount: sessionData.metrics?.runCount || 0,
+      submissionCount: sessionData.metrics?.submissionCount || 0,
+      errorCount: sessionData.metrics?.errorCount || 0,
+    }
   };
 
   const scoreBreakdown = [
-    { label: 'Planning', value: 95, weight: '20%' },
-    { label: 'Implementation', value: 87, weight: '30%' },
-    { label: 'Debugging', value: 89, weight: '30%' },
-    { label: 'Optimization', value: 82, weight: '20%' },
+    { label: 'Planning', value: sessionData.scoreBreakdown?.planning ?? 75, weight: '20%' },
+    { label: 'Implementation', value: sessionData.scoreBreakdown?.implementation ?? 75, weight: '30%' },
+    { label: 'Debugging', value: sessionData.scoreBreakdown?.debugging ?? 75, weight: '30%' },
+    { label: 'Optimization', value: sessionData.scoreBreakdown?.optimization ?? 75, weight: '20%' },
   ];
 
-  const codeSnapshots = [
-    {
-      trigger: 'START',
-      time: '14:30',
-      code: `function editDistance(word1, word2) {
-  const m = word1.length;
-  const n = word2.length;
-  // Initial approach - brute force
-  return 0;
-}`,
-    },
-    {
-      trigger: 'RUN',
-      time: '14:35',
-      code: `function editDistance(word1, word2) {
-  const m = word1.length;
-  const n = word2.length;
-  const dp = Array(m + 1).fill(0).map(() => Array(n + 1).fill(0));
-  // Trying DP approach
-  return dp[m][n];
-}`,
-    },
-    {
-      trigger: 'SUBMIT',
-      time: '15:12',
-      code: `function editDistance(word1, word2) {
-  const m = word1.length;
-  const n = word2.length;
-  const dp = Array(m + 1).fill(0).map(() => Array(n + 1).fill(0));
-
-  for (let i = 0; i <= m; i++) dp[i][0] = i;
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      if (word1[i-1] === word2[j-1]) {
-        dp[i][j] = dp[i-1][j-1];
-      } else {
-        dp[i][j] = 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
-      }
-    }
-  }
-  return dp[m][n];
-}`,
-    },
-  ];
+  const codeSnapshots = (sessionData.snapshots || []).map((s: any) => ({
+    trigger: s.trigger,
+    time: s.timestamp ? new Date(s.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '00:00',
+    code: s.code || '',
+  }));
 
   const analysis = {
-    summary:
-      'Strong DP solution with correct approach. Implementation could be optimized for space complexity.',
-    strengths: [
-      'Correctly identified DP as the optimal approach',
-      'Handled all three edit operations (insert, delete, replace)',
-      'Proper initialization of base cases',
-    ],
-    weaknesses: [
-      'O(m*n) space complexity - could optimize to O(n) with rolling array',
-      '4 run attempts before final submission - more initial planning could help',
-      'No early termination checks for obviously impossible cases',
-    ],
-    recommendations: [
-      'Practice space-optimized DP patterns',
-      'Work on problem constraints analysis before coding',
-      'Review similar problems: Longest Common Subsequence, Wildcard Matching',
-    ],
+    summary: sessionData.analysis?.summary || 'No analysis description available.',
+    strengths: Array.isArray(sessionData.analysis?.strengths) ? sessionData.analysis.strengths : [],
+    weaknesses: Array.isArray(sessionData.analysis?.weaknesses) ? sessionData.analysis.weaknesses : [],
+    recommendations: Array.isArray(sessionData.analysis?.recommendations) ? sessionData.analysis.recommendations.map((r: any) => r.reason) : [],
   };
 
   return (
@@ -248,7 +238,7 @@ export default function SessionDetail() {
                   <div>
                     <h3 className="font-medium text-slate-900 mb-3">Strengths</h3>
                     <ul className="space-y-2">
-                      {analysis.strengths.map((s, i) => (
+                      {analysis.strengths.map((s: string, i: number) => (
                         <li key={i} className="flex gap-2 text-sm text-slate-700">
                           <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
                           {s}
@@ -260,7 +250,7 @@ export default function SessionDetail() {
                   <div>
                     <h3 className="font-medium text-slate-900 mb-3">Areas to Improve</h3>
                     <ul className="space-y-2">
-                      {analysis.weaknesses.map((w, i) => (
+                      {analysis.weaknesses.map((w: string, i: number) => (
                         <li key={i} className="flex gap-2 text-sm text-slate-700">
                           <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
                           {w}
@@ -287,7 +277,7 @@ export default function SessionDetail() {
               </button>
               {expandedSection === 'code' && (
                 <div className="px-6 py-4 space-y-4">
-                  {codeSnapshots.map((snapshot, i) => (
+                  {codeSnapshots.map((snapshot: { trigger: string; time: string; code: string }, i: number) => (
                     <div key={i} className="border border-slate-200 rounded-md p-4">
                       <div className="flex items-center gap-2 mb-3">
                         <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-sm bg-slate-100 text-slate-700">
@@ -371,7 +361,7 @@ export default function SessionDetail() {
             <div className="bg-indigo-50 border border-indigo-200 rounded-md p-6">
               <h3 className="text-sm font-extrabold text-indigo-900 mb-3">Next Steps</h3>
               <ul className="space-y-2 text-sm text-indigo-800">
-                {analysis.recommendations.map((rec, i) => (
+                {analysis.recommendations.map((rec: string, i: number) => (
                   <li key={i} className="flex gap-2">
                     <Zap className="w-4 h-4 flex-shrink-0 mt-0.5" />
                     <span>{rec}</span>

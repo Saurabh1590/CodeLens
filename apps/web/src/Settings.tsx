@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -15,7 +15,7 @@ import {
 export default function Settings() {
   const navigate = useNavigate();
   const [formState, setFormState] = useState({
-    email: 'user@example.com',
+    email: 'test@codelens.dev',
     fullName: 'John Developer',
     timezone: 'UTC-8',
     emailNotifications: true,
@@ -23,13 +23,29 @@ export default function Settings() {
     dataCollection: true,
   });
 
+  useEffect(() => {
+    const storedEmail = localStorage.getItem('userEmail') || 'test@codelens.dev';
+    const storedName = localStorage.getItem('userFullName') || 'John Developer';
+    setFormState(prev => ({
+      ...prev,
+      email: storedEmail,
+      fullName: storedName
+    }));
+  }, []);
+
   const [showPassword, setShowPassword] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
   const handleSave = async () => {
     setSaveStatus('saving');
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setSaveStatus('success');
+    try {
+      localStorage.setItem('userEmail', formState.email);
+      localStorage.setItem('userFullName', formState.fullName);
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      setSaveStatus('success');
+    } catch (err) {
+      setSaveStatus('error');
+    }
     setTimeout(() => setSaveStatus('idle'), 2000);
   };
 
@@ -93,11 +109,13 @@ export default function Settings() {
               <input
                 type="email"
                 value={formState.email}
-                disabled
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-md text-slate-500 bg-slate-50 cursor-not-allowed"
+                onChange={(e) =>
+                  setFormState({ ...formState, email: e.target.value })
+                }
+                className="w-full px-4 py-2.5 border border-slate-200 rounded-md text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-150"
               />
               <p className="text-xs text-slate-500 mt-2">
-                Contact support to change your email address
+                Use the same email address in your Chrome Extension settings to sync sessions.
               </p>
             </div>
 

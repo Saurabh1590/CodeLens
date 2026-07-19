@@ -79,7 +79,8 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchSessions = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/sessions`);
+        const storedEmail = localStorage.getItem('userEmail') || 'test@codelens.dev';
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/sessions?email=${encodeURIComponent(storedEmail)}`);
         if (!response.ok) throw new Error('Failed to fetch sessions');
         const data = await response.json();
         setSessions(data);

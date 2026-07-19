@@ -113,9 +113,15 @@ fastify.get('/health', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() };
 });
 
-fastify.get('/api/sessions', async () => {
+fastify.get<{ Querystring: { email?: string } }>('/api/sessions', async (req) => {
   try {
+    const email = req.query.email;
     const sessions = await prisma.session.findMany({
+      where: email ? {
+        user: {
+          email: email
+        }
+      } : undefined,
       include: {
         analyses: {
           select: {
