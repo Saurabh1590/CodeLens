@@ -1,0 +1,120 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Enums replaced with String for SQLite compatibility
+
+// Models
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  createdAt DateTime  @default(now())
+  sessions  Session[]
+}
+
+model Session {
+  id                 String         @id @default(uuid())
+  userId             String
+  user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Problem Metadata
+  problemSlug        String
+  problemTitle       String
+  problemUrl         String?
+  platform           String         @default("LEETCODE")
+  difficulty         String
+  tags               String         // JSON Array: ["DP", "Arrays"]
+  language           String
+
+  // Timing
+  startTime          DateTime
+  endTime            DateTime
+
+  // Status
+  status             String
+
+  // Pre-calculated Summary Metrics
+  readingDuration    Int            // In seconds
+  codingDuration     Int            // In seconds
+  debuggingDuration  Int            // In seconds
+  totalDuration      Int            // In seconds
+  runCount           Int
+  submissionCount    Int
+
+  // Metadata
+  extensionVersion   String?
+  browserInfo        String?        // e.g., "Chrome 140"
+
+  // Relations
+  events             SessionEvent[]
+  snapshots          CodeSnapshot[]
+  analyses           Analysis[]
+
+  createdAt          DateTime       @default(now())
+}
+
+model SessionEvent {
+  id         String    @id @default(uuid())
+  sessionId  String
+  session    Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  eventType  String
+  timestamp  DateTime
+  details    String?   // Optional JSON metadata
+}
+
+model CodeSnapshot {
+  id               String          @id @default(uuid())
+  sessionId        String
+  session          Session         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  snapshotNumber   Int
+  trigger          String
+  verdict          String?
+  code             String
+  timestamp        DateTime
+  runNumber        Int
+  submissionNumber Int
+  executionTime    String?
+  memoryUsed       String?
+}
+
+model Analysis {
+  id                  String            @id @default(uuid())
+  sessionId           String
+  session             Session           @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  // Versioning
+  analysisVersion     String            // e.g., "1.0.0"
+  model               String            // e.g., "gemini-1.5-flash"
+
+  // Scores
+  overallScore        Int               // 0-100
+  planningScore       Int
+  implementationScore Int
+  debuggingScore      Int
+  optimizationScore   Int
+  confidenceScore     Int
+
+  // Feedback
+  summary             String
+  strengths           String            // JSON Array
+  weaknesses          String            // JSON Array
+
+  // Relations
+  recommendations     Recommendation[]
+
+  createdAt           DateTime          @default(now())
+}
+
+model Recommendation {
+  id         String   @id @default(uuid())
+  analysisId String
+  analysis   Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  category   String   // e.g., "DP", "Graphs"
+  count      Int      // Recommended problem count
+  reason     String
+}

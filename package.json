@@ -1,0 +1,31 @@
+{
+  "name": "codelens-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-powered analytics for DSA practice. Understand how you code, not just what you solve.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w apps/api",
+    "dev:web": "npm run dev -w apps/web",
+    "dev:ext": "npm run dev -w apps/extension",
+    "build:api": "npm run build -w apps/api",
+    "build:web": "npm run build -w apps/web",
+    "build:ext": "npm run build -w apps/extension",
+    "db:push": "npx prisma db push",
+    "db:studio": "npx prisma studio",
+    "db:seed": "npm run seed -w apps/api",
+    "mock:generate": "npx tsx apps/api/src/mock.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "prisma": "^5.22.0",
+    "tsx": "^4.7.1",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1"
+  }
+}   

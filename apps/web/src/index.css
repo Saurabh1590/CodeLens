@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-darkBg text-gray-100;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.01);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Custom styles for glow elements */
+.glowing-indigo {
+  box-shadow: 0 0 50px -10px rgba(99, 102, 241, 0.15);
+}
+.glowing-green {
+  box-shadow: 0 0 50px -10px rgba(16, 185, 129, 0.15);
+}
+.glowing-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glowing-card:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 20px -5px rgba(99, 102, 241, 0.08);
+}
+.glassmorphism {
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
