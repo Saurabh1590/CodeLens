@@ -132,30 +132,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         snapshots: activeSession.snapshots
       };
 
-      console.log('[Background] Finishing session and uploading. Payload size:', JSON.stringify(finalPayload).length);
+      // Get API URL from storage and upload to Fastify server
+      chrome.storage.local.get(['apiUrl'], (data) => {
+        const baseUrl = data.apiUrl || 'http://localhost:3000';
+        const url = `${baseUrl.replace(/\/$/, '')}/api/sessions`;
+        
+        console.log('[Background] Finishing session and uploading. Destination:', url);
 
-      // Upload to Fastify server
-      fetch('http://localhost:3000/api/sessions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(finalPayload)
-      })
-      .then(res => res.json())
-      .then(data => {
-        console.log('[Background] Upload successful:', data);
-        activeSession = null;
-        chrome.storage.local.set({ trackingState: 'IDLE' });
-        sendResponse({ success: true, response: data });
-      })
-      .catch(err => {
-        console.error('[Background] Upload failed:', err);
-        // Save to local storage for retry/recovery
-        chrome.storage.local.set({ pendingUpload: finalPayload });
-        activeSession = null;
-        chrome.storage.local.set({ trackingState: 'IDLE' });
-        sendResponse({ success: false, error: String(err) });
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(finalPayload)
+        })
+        .then(res => res.json())
+        .then(data => {
+          console.log('[Background] Upload successful:', data);
+          activeSession = null;
+          chrome.storage.local.set({ trackingState: 'IDLE' });
+          sendResponse({ success: true, response: data });
+        })
+        .catch(err => {
+          console.error('[Background] Upload failed:', err);
+          // Save to local storage for retry/recovery
+          chrome.storage.local.set({ pendingUpload: finalPayload });
+          activeSession = null;
+          chrome.storage.local.set({ trackingState: 'IDLE' });
+          sendResponse({ success: false, error: String(err) });
+        });
       });
 
       return true; // Keep channel open for async response
@@ -307,7 +312,11 @@ async function simulateInjectedSession(type: string, email: string) {
     snapshots
   };
 
-  const response = await fetch('http://localhost:3000/api/sessions', {
+  const stored = await chrome.storage.local.get(['apiUrl']);
+  const baseUrl = stored.apiUrl || 'http://localhost:3000';
+  const url = `${baseUrl.replace(/\/$/, '')}/api/sessions`;
+
+  const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)

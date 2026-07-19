@@ -8,20 +8,32 @@ document.addEventListener('DOMContentLoaded', async () => {
   const problemRunsSpan = document.getElementById('problem-runs') as HTMLSpanElement;
   const problemLangSpan = document.getElementById('problem-lang') as HTMLSpanElement;
   const emailInput = document.getElementById('user-email') as HTMLInputElement;
+  const apiUrlInput = document.getElementById('api-url') as HTMLInputElement;
   const btnSimulate = document.getElementById('btn-simulate') as HTMLButtonElement;
   const simProfileSelect = document.getElementById('sim-profile') as HTMLSelectElement;
 
-  // Load email configuration
-  const stored = await chrome.storage.local.get(['userEmail']);
+  // Load configuration
+  const stored = await chrome.storage.local.get(['userEmail', 'apiUrl']);
   if (stored.userEmail) {
     emailInput.value = stored.userEmail;
   } else {
     await chrome.storage.local.set({ userEmail: emailInput.value });
   }
 
+  if (stored.apiUrl) {
+    apiUrlInput.value = stored.apiUrl;
+  } else {
+    await chrome.storage.local.set({ apiUrl: apiUrlInput.value || 'http://localhost:3000' });
+  }
+
   // Save email configuration on change
   emailInput.addEventListener('input', async () => {
     await chrome.storage.local.set({ userEmail: emailInput.value });
+  });
+
+  // Save API URL configuration on change
+  apiUrlInput.addEventListener('input', async () => {
+    await chrome.storage.local.set({ apiUrl: apiUrlInput.value });
   });
 
   // Poll background tracking status

@@ -387,7 +387,7 @@ fastify.setErrorHandler((error, request, reply) => {
 // Start server
 const start = async () => {
   try {
-    const port = parseInt(process.env.API_PORT || '3000', 10);
+    const port = parseInt(process.env.PORT || process.env.API_PORT || '3000', 10);
     await fastify.listen({ port, host: '0.0.0.0' });
     console.log(`:white_check_mark: API running at localhost:${port}`);
     console.log(':memo: Using mock data (Prisma database not initialized)');
