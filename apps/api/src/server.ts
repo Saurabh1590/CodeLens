@@ -196,7 +196,28 @@ fastify.get<{ Params: { id: string } }>('/api/sessions/:id', async (req) => {
         runCount: s.runCount,
         submissionCount: s.submissionCount,
         acceptanceRate: Math.round((s.runCount / (s.submissionCount || 1)) * 100),
-        errorCount: s.runCount - s.submissionCount
+        errorCount: s.snapshots.filter(snap => snap.verdict && snap.verdict !== 'ACCEPTED').length
+      },
+      scoreBreakdown: {
+        planning: s.analyses[0]?.planningScore ?? 75,
+        implementation: s.analyses[0]?.implementationScore ?? 75,
+        debugging: s.analyses[0]?.debuggingScore ?? 75,
+        optimization: s.analyses[0]?.optimizationScore ?? 75
+      },
+      snapshots: s.snapshots.map(snap => ({
+        trigger: snap.trigger,
+        code: snap.code,
+        timestamp: snap.timestamp.toISOString()
+      })),
+      analysis: {
+        summary: s.analyses[0]?.summary || '',
+        strengths: s.analyses[0]?.strengths ? JSON.parse(s.analyses[0].strengths) : [],
+        weaknesses: s.analyses[0]?.weaknesses ? JSON.parse(s.analyses[0].weaknesses) : [],
+        recommendations: s.analyses[0]?.recommendations.map(r => ({
+          category: r.category,
+          count: r.count,
+          reason: r.reason
+        })) || []
       }
     };
   } catch (error) {
