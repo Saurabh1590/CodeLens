@@ -152,6 +152,31 @@ Start the backend and frontend dev servers concurrently:
 
 ---
 
+
+---
+
+## �:world_map: Product Roadmap
+
+### v1 (Current MVP)
+- :white_check_mark: LeetCode extension integration
+- :white_check_mark: Local workspace batch uploads
+- :white_check_mark: Structured AI Analyzer & Fallback Mock mode
+- :white_check_mark: Detailed session scores (Planning, Implementation, Debugging, Optimization)
+- :white_check_mark: Interactive code snapshots diff timeline (Session Replay)
+- :white_check_mark: Privacy-first landing page & dashboard portal
+
+### v2 (Multi-Platform & Teams)
+- :black_square_button: GeeksforGeeks, Codeforces, and HackerRank adapters
+- :black_square_button: VS Code and JetBrains IDE extensions (tracking local compilation loops)
+- :black_square_button: Team Dashboard (classrooms, bootcamp logs, and hiring assessments)
+
+### v3 (Advanced Coaching)
+- :black_square_button: Interactive Mock Interview voice simulator
+- :black_square_button: Dynamic code optimization tips (suggesting custom cache implementations)
+- :black_square_button: Suboptimal complexity block alerts
+
+---
+
 ## :ship: Deployment & Hosting
 
 For instructions on deploying the dashboard (Vercel) and backend database API (Render with volume mounts), refer to the [Hosting Guide](./hosting_guide.md).
